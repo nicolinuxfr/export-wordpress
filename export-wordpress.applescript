@@ -1,12 +1,11 @@
 
 -- On crée une liste avec toutes les taxonomies demandées
 on listeMeta(type)
+	set AppleScript's text item delimiters to ""
 	set listeTemp to "\""
 	repeat with x from 1 to count of type
 		set listeTemp to listeTemp & |name| of item x of type & "\", "
 	end repeat
-	
-	
 	return ("[ " & (characters 1 thru -3 of listeTemp) as text) & " ]"
 end listeMeta
 
@@ -30,8 +29,8 @@ on traitementArticle(infoArticle)
 	-- Récupération des trois données importantes : slug, l'article en lui-même et les métadonnées
 	set slugArticle to slug of infoArticle
 	set article to content of infoArticle
+	set dateArticle to |date| of infoArticle
 	set lesMeta to terms of infoArticle
-	
 	
 	try
 		tell application "Finder" to make new folder at (path to desktop folder from user domain) with properties {name:slugArticle}
@@ -94,6 +93,7 @@ on traitementArticle(infoArticle)
 	set fichierTemp to "---
 title: \"" & title of infoArticle & "\"
 slug: \"" & slugArticle & "\"
+date: \"" & dateArticle & "\"
 couverture: \"" & imageCouv & "\""
 	
 	if lesCategories is not false then set fichierTemp to fichierTemp & "
