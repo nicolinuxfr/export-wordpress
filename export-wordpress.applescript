@@ -145,7 +145,3 @@ tell application "JSON Helper"
 	end repeat
 	
 end tell
-
-
-
-gith
