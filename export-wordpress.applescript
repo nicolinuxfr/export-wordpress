@@ -18,10 +18,12 @@ on rechercheImages(texte)
 	repeat with x from 2 to count of text items in texte
 		set temp to text item x of texte
 		set urlTemp to text 1 thru ((offset of "\"" in temp) - 1) of temp
+		if urlTemp begins with "//" then set urlTemp to "http:" & urlTemp
 		if urlTemp ends with "jpg" then set listeTemp to listeTemp & urlTemp
 	end repeat
-	
 	return listeTemp
+	
+	
 end rechercheImages
 
 
@@ -30,6 +32,7 @@ on traitementArticle(infoArticle)
 	set slugArticle to slug of infoArticle
 	set article to content of infoArticle
 	set dateArticle to |date| of infoArticle
+	set dateEdit to |modified| of infoArticle
 	set lesMeta to terms of infoArticle
 	
 	try
@@ -88,13 +91,17 @@ on traitementArticle(infoArticle)
 		end repeat
 	end try
 	
+	set AppleScript's text item delimiters to "/"
+	set imageCouv to "/" & slugArticle & "/" & last text item of imageCouv
+	
 	-- *********************** CRƒATION FICHIER FINAL ***********************
 	
 	set fichierTemp to "---
 title: \"" & title of infoArticle & "\"
-slug: \"" & slugArticle & "\"
+url: \"/" & slugArticle & "\"
 date: \"" & dateArticle & "\"
-couverture: \"" & imageCouv & "\""
+dateEdit: \"" & dateEdit & "\"
+cover: \"" & imageCouv & "\""
 	
 	if lesCategories is not false then set fichierTemp to fichierTemp & "
 categories: " & lesCategories
@@ -120,7 +127,7 @@ sagas: " & lesSagas
 
 " & article
 	
-	do shell script "cd " & quoted form of (POSIX path of (path to desktop folder from user domain) & slugArticle) & " ; echo " & quoted form of fichierTemp & " > " & slugArticle & ".md"
+	do shell script "cd " & quoted form of (POSIX path of (path to desktop folder from user domain) & slugArticle) & " ; echo " & quoted form of fichierTemp & " > index.md"
 	
 end traitementArticle
 
@@ -128,12 +135,17 @@ end traitementArticle
 -- *********************** LANCEMENT ***********************
 
 tell application "JSON Helper"
-	set listeArticles to fetch JSON from "http://voiretmanger.fr/wp-json/posts" with cleaning feed
+	repeat with x from 13 to 50
+		
+		set listeArticles to fetch JSON from "http://voiretmanger.fr/wp-json/posts/?page=" & x with cleaning feed
+		repeat with x from 1 to count of listeArticles
+			my traitementArticle(item x of listeArticles)
+		end repeat
+		
+	end repeat
 	
 end tell
 
 
-repeat with x from 1 to count of listeArticles
-	my traitementArticle(item x of listeArticles)
-end repeat
 
+gith
