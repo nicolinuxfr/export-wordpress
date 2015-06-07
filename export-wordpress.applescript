@@ -2,9 +2,9 @@
 -- On crŽe une liste avec toutes les taxonomies demandŽes
 on listeMeta(type)
 	set AppleScript's text item delimiters to ""
-	set listeTemp to "\""
+	set listeTemp to ""
 	repeat with x from 1 to count of type
-		set listeTemp to listeTemp & |name| of item x of type & "\", "
+		set listeTemp to listeTemp & "\"" & |name| of item x of type & "\", "
 	end repeat
 	return ("[ " & (characters 1 thru -3 of listeTemp) as text) & " ]"
 end listeMeta
@@ -36,7 +36,7 @@ on traitementArticle(infoArticle)
 	set lesMeta to terms of infoArticle
 	
 	try
-		tell application "Finder" to make new folder at (path to desktop folder from user domain) with properties {name:slugArticle}
+		tell application "Finder" to make new folder at (path to temporary items from user domain) with properties {name:slugArticle}
 	end try
 	
 	-- *********************** CRƒATION LISTE TAXONOMIES ***********************
@@ -75,19 +75,32 @@ on traitementArticle(infoArticle)
 	-- *********************** TƒLƒCHARGEMENT DES IMAGES ***********************
 	
 	-- Image de couverture
-	set imageCouv to source of featured_image of infoArticle
+	try
+		set imageCouv to source of featured_image of infoArticle
+		set listeImages to (imageCouv as list) & my rechercheImages(article)
+	on error
+		-- Recherche des autres images dans l'article
+		set imageCouv to ""
+		set listeImages to my rechercheImages(article)
+	end try
 	
-	-- Recherche des autres images dans l'article
-	set listeImages to (imageCouv as list) & my rechercheImages(article)
 	
 	-- TŽlŽchargement dans le dossier crŽŽ au dŽpart
 	try
 		repeat with x from 1 to count of listeImages
-			do shell script "cd " & quoted form of (POSIX path of (path to desktop folder from user domain) & slugArticle) & "  ; curl --max-time 5 -O " & quoted form of item x of listeImages
+			try
+				do shell script "cd " & quoted form of (POSIX path of (path to temporary items from user domain) & slugArticle) & "  ; curl --max-time 5 -O " & quoted form of item x of listeImages
+			on error
+				log "Erreur : " & item x of listeImages
+			end try
 		end repeat
 	on error -- en cas de problme la premire fois, on recommence
 		repeat with x from 1 to count of listeImages
-			do shell script "cd " & quoted form of (POSIX path of (path to desktop folder from user domain) & slugArticle) & "  ; curl --max-time 5 -O " & quoted form of item x of listeImages
+			try
+				do shell script "cd " & quoted form of (POSIX path of (path to temporary items from user domain) & slugArticle) & "  ; curl --max-time 5 -O " & quoted form of item x of listeImages
+			on error
+				log "Erreur : " & item x of listeImages
+			end try
 		end repeat
 	end try
 	
@@ -96,38 +109,38 @@ on traitementArticle(infoArticle)
 	
 	-- *********************** CRƒATION FICHIER FINAL ***********************
 	
-	set fichierTemp to "---
-title: \"" & title of infoArticle & "\"
-url: \"/" & slugArticle & "\"
-date: \"" & dateArticle & "\"
-dateEdit: \"" & dateEdit & "\"
-cover: \"" & imageCouv & "\""
+	set fichierTemp to "+++
+title = \"" & title of infoArticle & "\"
+url = \"/" & slugArticle & "\"
+date = \"" & dateArticle & "\"
+dateEdit = \"" & dateEdit & "\"
+cover = \"" & imageCouv & "\""
 	
 	if lesCategories is not false then set fichierTemp to fichierTemp & "
-categories: " & lesCategories
+categories = " & lesCategories
 	
 	if lesTags is not false then set fichierTemp to fichierTemp & "
-tags: " & lesTags
+tags = " & lesTags
 	
 	if lesCreateurs is not false then set fichierTemp to fichierTemp & "
-createurs: " & lesCreateurs
+createurs = " & lesCreateurs
 	
 	if lesActeurs is not false then set fichierTemp to fichierTemp & "
-acteurs: " & lesActeurs
+acteurs = " & lesActeurs
 	
 	if lesAnnees is not false then set fichierTemp to fichierTemp & "
-annees: " & lesAnnees
+annees = " & lesAnnees
 	
 	if lesSagas is not false then set fichierTemp to fichierTemp & "
-sagas: " & lesSagas
+sagas = " & lesSagas
 	
 	set fichierTemp to fichierTemp & "
 
----
++++
 
 " & article
 	
-	do shell script "cd " & quoted form of (POSIX path of (path to desktop folder from user domain) & slugArticle) & " ; echo " & quoted form of fichierTemp & " > index.md"
+	do shell script "cd " & quoted form of (POSIX path of (path to temporary items from user domain) & slugArticle) & " ; echo " & quoted form of fichierTemp & " > index.md"
 	
 end traitementArticle
 
@@ -135,9 +148,17 @@ end traitementArticle
 -- *********************** LANCEMENT ***********************
 
 tell application "JSON Helper"
-	repeat with x from 13 to 50
-		
-		set listeArticles to fetch JSON from "http://voiretmanger.fr/wp-json/posts/?page=" & x with cleaning feed
+	repeat with x from 1 to 120
+		log "Page n¡" & x & " sur 120"
+		try
+			set listeArticles to fetch JSON from "http://voiretmanger.fr/wp-json/posts/?page=" & x with cleaning feed
+		on error
+			try
+				set listeArticles to fetch JSON from "http://voiretmanger.fr/wp-json/posts/?page=" & x with cleaning feed
+			on error
+				log "Page n¡" & x & " - impossible ˆ charger"
+			end try
+		end try
 		repeat with x from 1 to count of listeArticles
 			my traitementArticle(item x of listeArticles)
 		end repeat
