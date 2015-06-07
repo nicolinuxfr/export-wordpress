@@ -128,8 +128,10 @@ createurs = " & lesCreateurs
 	if lesActeurs is not false then set fichierTemp to fichierTemp & "
 acteurs = " & lesActeurs
 	
+	set AppleScript's text item delimiters to "\""
 	if lesAnnees is not false then set fichierTemp to fichierTemp & "
-annees = " & lesAnnees
+annees = " & lesAnnees & "
+weight = " & text item 2 of lesAnnees
 	
 	if lesSagas is not false then set fichierTemp to fichierTemp & "
 sagas = " & lesSagas
