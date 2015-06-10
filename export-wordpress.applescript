@@ -19,7 +19,7 @@ on rechercheImages(texte)
 		set temp to text item x of texte
 		set urlTemp to text 1 thru ((offset of "\"" in temp) - 1) of temp
 		if urlTemp begins with "//" then set urlTemp to "http:" & urlTemp
-		if urlTemp ends with "jpg" then set listeTemp to listeTemp & urlTemp
+		if urlTemp ends with "jpg" or urlTemp ends with "jpeg" then set listeTemp to listeTemp & urlTemp
 	end repeat
 	return listeTemp
 	
@@ -46,6 +46,11 @@ on traitementArticle(infoArticle)
 	set lesCreateurs to false
 	set lesSagas to false
 	set lesAnnees to false
+	set titreOriginal to false
+	set lesMetteursEnScene to false
+	set lesLieux to false
+	set lesChef to false
+	set lesFestival to false
 	
 	try
 		set lesCategories to my listeMeta(category of lesMeta)
@@ -70,6 +75,28 @@ on traitementArticle(infoArticle)
 	try
 		set lesSagas to my listeMeta(saga of lesMeta)
 	end try
+	
+	try
+		set titreOriginal to my listeMeta(original of lesMeta)
+	end try
+	
+	try
+		set lesMetteursEnScene to my listeMeta(metteurenscene of lesMeta)
+	end try
+	
+	try
+		set lesLieux to my listeMeta(lieu of lesMeta)
+	end try
+	
+	try
+		set lesChef to my listeMeta(chef of lesMeta)
+	end try
+	
+	try
+		set lesFestival to my listeMeta(festival of lesMeta)
+	end try
+	
+	
 	
 	
 	-- *********************** TÉLÉCHARGEMENT DES IMAGES ***********************
@@ -105,7 +132,7 @@ on traitementArticle(infoArticle)
 	end try
 	
 	set AppleScript's text item delimiters to "/"
-	set imageCouv to "/" & slugArticle & "/" & last text item of imageCouv
+	set imageCouv to last text item of imageCouv
 	
 	-- *********************** CRÉATION FICHIER FINAL ***********************
 	
@@ -135,6 +162,21 @@ weight = " & text item 2 of lesAnnees
 	
 	if lesSagas is not false then set fichierTemp to fichierTemp & "
 sagas = " & lesSagas
+	
+	if lesMetteursEnScene is not false then set fichierTemp to fichierTemp & "
+metteur = " & lesMetteursEnScene
+	
+	if lesLieux is not false then set fichierTemp to fichierTemp & "
+lieu = " & lesLieux
+	
+	if lesChef is not false then set fichierTemp to fichierTemp & "
+chef = " & lesChef
+	
+	if lesFestival is not false then set fichierTemp to fichierTemp & "
+festival = " & lesFestival
+	
+	if titreOriginal is not false then set fichierTemp to fichierTemp & "
+original = \"" & text item 2 of titreOriginal & "\""
 	
 	set fichierTemp to fichierTemp & "
 
