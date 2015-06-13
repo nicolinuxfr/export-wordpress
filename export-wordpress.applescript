@@ -44,6 +44,7 @@ on traitementArticle(infoArticle)
 	set lesTags to false
 	set lesActeurs to false
 	set lesCreateurs to false
+	set lesPays to false
 	set lesSagas to false
 	set lesAnnees to false
 	set titreOriginal to false
@@ -71,6 +72,11 @@ on traitementArticle(infoArticle)
 	try
 		set lesAnnees to my listeMeta(annee of lesMeta)
 	end try
+	
+	try
+		set lesPays to my listeMeta(pays of lesMeta)
+	end try
+	
 	
 	try
 		set lesSagas to my listeMeta(saga of lesMeta)
@@ -162,6 +168,9 @@ weight = " & text item 2 of lesAnnees
 	
 	if lesSagas is not false then set fichierTemp to fichierTemp & "
 sagas = " & lesSagas
+	
+	if lesPays is not false then set fichierTemp to fichierTemp & "
+pays = " & lesPays
 	
 	if lesMetteursEnScene is not false then set fichierTemp to fichierTemp & "
 metteur = " & lesMetteursEnScene
