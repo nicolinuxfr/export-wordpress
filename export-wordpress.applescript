@@ -21,10 +21,34 @@ on rechercheImages(texte)
 		if urlTemp begins with "//" then set urlTemp to "http:" & urlTemp
 		if urlTemp ends with "jpg" or urlTemp ends with "jpeg" then set listeTemp to listeTemp & urlTemp
 	end repeat
+	
+	set AppleScript's text item delimiters to "href=\""
+	repeat with x from 2 to count of text items in texte
+		set temp to text item x of texte
+		set urlTemp to text 1 thru ((offset of "\"" in temp) - 1) of temp
+		if urlTemp begins with "//" then set urlTemp to "http:" & urlTemp
+		if urlTemp ends with "jpg" or urlTemp ends with "jpeg" then set listeTemp to listeTemp & urlTemp
+	end repeat
 	return listeTemp
 	
-	
 end rechercheImages
+
+-- Nettoyage du titre (http://www.macosxautomation.com/applescript/sbrt/sbrt-04.html)
+on remove_markup(this_text)
+	set copy_flag to true
+	set the clean_text to ""
+	repeat with this_char in this_text
+		set this_char to the contents of this_char
+		if this_char is "<" then
+			set the copy_flag to false
+		else if this_char is ">" then
+			set the copy_flag to true
+		else if the copy_flag is true then
+			set the clean_text to the clean_text & this_char as string
+		end if
+	end repeat
+	return the clean_text
+end remove_markup
 
 
 on traitementArticle(infoArticle)
@@ -144,26 +168,27 @@ on traitementArticle(infoArticle)
 	
 	set fichierTemp to "+++
 title = \"" & title of infoArticle & "\"
+titleAlt = \"" & my remove_markup(title of infoArticle) & "\"
 url = \"/" & slugArticle & "\"
 date = \"" & dateArticle & "\"
-dateEdit = \"" & dateEdit & "\"
+Lastmod = \"" & dateEdit & "\"
 cover = \"" & imageCouv & "\""
 	
 	if lesCategories is not false then set fichierTemp to fichierTemp & "
-categories = " & lesCategories
+categorie = " & lesCategories
 	
 	if lesTags is not false then set fichierTemp to fichierTemp & "
-tags = " & lesTags
+tag = " & lesTags
 	
 	if lesCreateurs is not false then set fichierTemp to fichierTemp & "
-createurs = " & lesCreateurs
+createur = " & lesCreateurs
 	
 	if lesActeurs is not false then set fichierTemp to fichierTemp & "
-acteurs = " & lesActeurs
+acteur = " & lesActeurs
 	
 	set AppleScript's text item delimiters to "\""
 	if lesAnnees is not false then set fichierTemp to fichierTemp & "
-annees = " & lesAnnees & "
+annee = " & lesAnnees & "
 weight = " & text item 2 of lesAnnees
 	
 	if lesSagas is not false then set fichierTemp to fichierTemp & "
