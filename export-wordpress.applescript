@@ -16,19 +16,30 @@ on rechercheImages(texte)
 	set listeTemp to []
 	
 	repeat with x from 2 to count of text items in texte
-		set temp to text item x of texte
-		set urlTemp to text 1 thru ((offset of "\"" in temp) - 1) of temp
-		if urlTemp begins with "//" then set urlTemp to "http:" & urlTemp
-		if urlTemp ends with "jpg" or urlTemp ends with "jpeg" then set listeTemp to listeTemp & urlTemp
+		try
+			set temp to text item x of texte
+			set urlTemp to text 1 thru ((offset of "\"" in temp) - 1) of temp
+			if urlTemp begins with "//" then set urlTemp to "http:" & urlTemp
+			if urlTemp ends with "jpg" or urlTemp ends with "jpeg" then set listeTemp to listeTemp & urlTemp
+		on error
+			log "Erreur : urlTemp"
+		end try
 	end repeat
 	
 	set AppleScript's text item delimiters to "href=\""
 	repeat with x from 2 to count of text items in texte
-		set temp to text item x of texte
-		set urlTemp to text 1 thru ((offset of "\"" in temp) - 1) of temp
-		if urlTemp begins with "//" then set urlTemp to "http:" & urlTemp
-		if urlTemp ends with "jpg" or urlTemp ends with "jpeg" then set listeTemp to listeTemp & urlTemp
+		try
+			set temp to text item x of texte
+			set urlTemp to text 1 thru ((offset of "\"" in temp) - 1) of temp
+			if urlTemp begins with "//" then set urlTemp to "http:" & urlTemp
+			if urlTemp ends with "jpg" or urlTemp ends with "jpeg" then set listeTemp to listeTemp & urlTemp
+		on error
+			log "Erreur : urlTemp"
+		end try
 	end repeat
+	
+	
+	
 	return listeTemp
 	
 end rechercheImages
@@ -47,7 +58,19 @@ on remove_markup(this_text)
 			set the clean_text to the clean_text & this_char as string
 		end if
 	end repeat
-	return the clean_text
+	
+	
+	if clean_text contains "&rsquo;" then
+		-- Remplacement des ' en entités HTML
+		set AppleScript's text item delimiters to "&rsquo;"
+		set textTemp to ""
+		repeat with x from 1 to count of text item in clean_text
+			set textTemp to textTemp & text item x of clean_text & "'"
+		end repeat
+		return text 1 thru -2 of textTemp
+	else
+		return clean_text
+	end if
 end remove_markup
 
 
@@ -167,8 +190,8 @@ on traitementArticle(infoArticle)
 	-- *********************** CRÉATION FICHIER FINAL ***********************
 	
 	set fichierTemp to "+++
-title = \"" & title of infoArticle & "\"
-titleAlt = \"" & my remove_markup(title of infoArticle) & "\"
+titre = \"" & title of infoArticle & "\"
+title = \"" & my remove_markup(title of infoArticle) & "\"
 url = \"/" & slugArticle & "\"
 date = \"" & dateArticle & "\"
 Lastmod = \"" & dateEdit & "\"
@@ -192,7 +215,7 @@ annee = " & lesAnnees & "
 weight = " & text item 2 of lesAnnees
 	
 	if lesSagas is not false then set fichierTemp to fichierTemp & "
-sagas = " & lesSagas
+saga = " & lesSagas
 	
 	if lesPays is not false then set fichierTemp to fichierTemp & "
 pays = " & lesPays
