@@ -149,11 +149,13 @@ on traitementArticle(infoArticle)
 		set lesFestival to my listeMeta(festival of lesMeta)
 	end try
 	
-	
+	try
+		set imageCouv to source of featured_image of infoArticle
+	end try
 	
 	
 	-- *********************** TÉLÉCHARGEMENT DES IMAGES ***********************
-	
+	(*
 	-- Image de couverture
 	try
 		set imageCouv to source of featured_image of infoArticle
@@ -183,9 +185,12 @@ on traitementArticle(infoArticle)
 			end try
 		end repeat
 	end try
+
 	
 	set AppleScript's text item delimiters to "/"
 	set imageCouv to last text item of imageCouv
+	
+*)
 	
 	-- *********************** CRÉATION FICHIER FINAL ***********************
 	
@@ -194,8 +199,10 @@ titre = \"" & title of infoArticle & "\"
 title = \"" & my remove_markup(title of infoArticle) & "\"
 url = \"/" & slugArticle & "\"
 date = \"" & dateArticle & "\"
-Lastmod = \"" & dateEdit & "\"
-cover = \"" & imageCouv & "\""
+Lastmod = \"" & dateEdit & "\""
+	
+	if imageCouv is not false then set fichierTemp to fichierTemp & "
+cover = " & imageCouv
 	
 	if lesCategories is not false then set fichierTemp to fichierTemp & "
 categorie = " & lesCategories
@@ -249,13 +256,13 @@ end traitementArticle
 -- *********************** LANCEMENT ***********************
 
 tell application "JSON Helper"
-	repeat with x from 1 to 120
-		log "Page n°" & x & " sur 120"
+	repeat with x from 1 to 200
+		log "Page n°" & x & " sur 200"
 		try
-			set listeArticles to fetch JSON from "http://voiretmanger.fr/wp-json/posts/?page=" & x with cleaning feed
+			set listeArticles to fetch JSON from "https://voiretmanger.fr/wp-json/posts/?page=" & x with cleaning feed
 		on error
 			try
-				set listeArticles to fetch JSON from "http://voiretmanger.fr/wp-json/posts/?page=" & x with cleaning feed
+				set listeArticles to fetch JSON from "https://voiretmanger.fr/wp-json/posts/?page=" & x with cleaning feed
 			on error
 				log "Page n°" & x & " - impossible à charger"
 			end try
